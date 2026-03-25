@@ -1,0 +1,17 @@
+name: sdl3_gpu_examples
+description: SDL_gpu_examples for Dart(SDL3)
+version: 1.0.0
+homepage: https://github.com/sansuido/sdl3_gpu_examples
+repository: https://github.com/sansuido/sdl3_gpu_examples
+
+environment:
+  sdk: ^3.11.3
+
+# Add regular dependencies here.
+dependencies:
+  ffi: ^2.2.0
+  sdl3: ^2.7.0
+  vector_math: ^2.3.0
+
+dev_dependencies:
+  halildurmus_lints: ^2.0.0
