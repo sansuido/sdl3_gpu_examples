@@ -1,5 +1,6 @@
 // https://github.com/TheSpydog/SDL_gpu_examples/blob/main/Examples/CullMode.c
 import 'dart:ffi';
+
 import 'package:sdl3/sdl3.dart';
 import 'package:sdl3_gpu_examples/sdl3_gpu_examples.dart';
 
@@ -84,8 +85,8 @@ class CullMode extends Common {
 
   @override
   bool init(Context context) {
-    leftViewport = SdlxGpuViewport(w: 320, h: 480);
-    rightViewport = SdlxGpuViewport(x: 320, w: 320, h: 480);
+    leftViewport = const SdlxGpuViewport(w: 320, h: 480);
+    rightViewport = const SdlxGpuViewport(x: 320, w: 320, h: 480);
     final vertexShader = loadShaderFromSource(
       context.device,
       gVertexSource,
@@ -107,45 +108,57 @@ class CullMode extends Common {
       return false;
     }
     // Create the pipeline
-    final pipelineCreateInfo = SdlxGpuGraphicsPipelineCreateInfo()
-      ..targetInfo.colorTargetDescriptions = [
-        SdlxGpuColorTargetDescription()
-          ..format = sdlGetGpuSwapchainTextureFormat(
+    final targetInfo = SdlxGpuGraphicsPipelineTargetInfo(
+      colorTargetDescriptions: [
+        SdlxGpuColorTargetDescription(
+          format: sdlGetGpuSwapchainTextureFormat(
             context.device,
             context.window,
           ),
-      ]
-      ..vertexInputState.vertexBufferDescriptions = [
-        SdlxGpuVertexBufferDescription()
-          ..slot = 0
-          ..inputRate = SdlkGpuVertexinputrate.vertex
-          ..instanceStepRate = 0
-          ..pitch = sizeOf<PositionColorVertex>(),
-      ]
-      ..vertexInputState.vertexAttributes = [
-        SdlxGpuVertexAttribute()
-          ..bufferSlot = 0
-          ..format = SdlkGpuVertexelementformat.float3
-          ..location = 0
-          ..offset = 0,
-        SdlxGpuVertexAttribute()
-          ..bufferSlot = 0
-          ..format = SdlkGpuVertexelementformat.ubyte4Norm
-          ..location = 1
-          ..offset = sizeOf<Float>() * 3,
-      ]
-      ..primitiveType = SdlkGpuPrimitivetype.trianglelist
-      ..vertexShader = vertexShader
-      ..fragmentShader = fragmentShader
-      ..rasterizerState.fillMode = SdlkGpuFillmode.fill;
+        ),
+      ],
+    );
+    final vertexInputState = SdlxGpuVertexInputState(
+      vertexBufferDescriptions: [
+        SdlxGpuVertexBufferDescription(
+          //slot: 0,
+          //inputRate: SdlkGpuVertexinputrate.vertex,
+          //instanceStepRate: 0,
+          pitch: sizeOf<PositionColorVertex>(),
+        ),
+      ],
+      vertexAttributes: [
+        const SdlxGpuVertexAttribute(
+          //bufferSlot: 0,
+          format: SdlkGpuVertexelementformat.float3,
+          //location: 0,
+          //offset: 0,
+        ),
+        SdlxGpuVertexAttribute(
+          //bufferSlot: 0,
+          format: SdlkGpuVertexelementformat.ubyte4Norm,
+          location: 1,
+          offset: sizeOf<Float>() * 3,
+        ),
+      ],
+    );
     for (var i = 0; i < gModeNames.length; i++) {
-      pipelineCreateInfo.rasterizerState.cullMode = i % 3;
-      pipelineCreateInfo.rasterizerState.frontFace = i > 2
-          ? SdlkGpuFrontface.clockwise
-          : SdlkGpuFrontface.counterClockwise;
       final pipeline = sdlxCreateGpuGraphicsPipeline(
         context.device,
-        pipelineCreateInfo,
+        SdlxGpuGraphicsPipelineCreateInfo(
+          targetInfo: targetInfo,
+          vertexInputState: vertexInputState,
+          //primitiveType: SdlkGpuPrimitivetype.trianglelist,
+          vertexShader: vertexShader,
+          fragmentShader: fragmentShader,
+          rasterizerState: SdlxGpuRasterizerState(
+            //fillMode: SdlkGpuFillmode.fill,
+            cullMode: i % 3,
+            frontFace: i > 2
+                ? SdlkGpuFrontface.clockwise
+                : SdlkGpuFrontface.counterClockwise,
+          ),
+        ),
       );
       if (pipeline == nullptr) {
         sdlLog('Failed to create pipeline!');
@@ -158,18 +171,20 @@ class CullMode extends Common {
     sdlReleaseGpuShader(context.device, fragmentShader);
     // Create the vertex buffer
     {
-      final bufferCreateInfo = SdlxGpuBufferCreateInfo()
-        ..usage = SdlkGpuBufferusage.vertex
-        ..size = sizeOf<PositionColorVertex>() * 3;
+      final bufferCreateInfo = SdlxGpuBufferCreateInfo(
+        usage: SdlkGpuBufferusage.vertex,
+        size: sizeOf<PositionColorVertex>() * 3,
+      );
       vertexBufferCw = sdlxCreateGpuBuffer(context.device, bufferCreateInfo);
       vertexBufferCcw = sdlxCreateGpuBuffer(context.device, bufferCreateInfo);
     }
     // To get data into the vertex buffer, we have to use a transfer buffer
     Pointer<SdlGpuTransferBuffer> transferBuffer = nullptr;
     {
-      final transferBufferCreateInfo = SdlxGpuTransferBufferCreateInfo()
-        ..usage = SdlkGpuTransferbufferusage.upload
-        ..size = sizeOf<PositionColorVertex>() * 6;
+      final transferBufferCreateInfo = SdlxGpuTransferBufferCreateInfo(
+        //usage: SdlkGpuTransferbufferusage.upload,
+        size: sizeOf<PositionColorVertex>() * 6,
+      );
       transferBuffer = sdlxCreateGpuTransferBuffer(
         context.device,
         transferBufferCreateInfo,
@@ -190,39 +205,33 @@ class CullMode extends Common {
     // Upload the transfer data to the vertex buffer
     final uploadCommandBuffer = sdlAcquireGpuCommandBuffer(context.device);
     final copyPass = sdlBeginGpuCopyPass(uploadCommandBuffer);
-    final transferBufferLocation = SdlxGpuTransferBufferLocation();
-    final bufferRegion = SdlxGpuBufferRegion();
+    //final transferBufferLocation = SdlxGpuTransferBufferLocation();
+    //final bufferRegion = SdlxGpuBufferRegion();
     // cw
     {
-      transferBufferLocation
-        ..transferBuffer = transferBuffer
-        ..offset = 0;
-      bufferRegion
-        ..buffer = vertexBufferCw
-        ..offset = 0
-        ..size = sizeOf<PositionColorVertex>() * 3;
-      sdlxUploadToGpuBuffer(
-        copyPass,
-        transferBufferLocation,
-        bufferRegion,
-        false,
+      final transferBufferLocation = SdlxGpuTransferBufferLocation(
+        transferBuffer: transferBuffer,
+        //offset: 0,
       );
+      final bufferRegion = SdlxGpuBufferRegion(
+        buffer: vertexBufferCw,
+        //offset: 0,
+        size: sizeOf<PositionColorVertex>() * 3,
+      );
+      sdlxUploadToGpuBuffer(copyPass, transferBufferLocation, bufferRegion);
     }
     // ccw
     {
-      transferBufferLocation
-        ..transferBuffer = transferBuffer
-        ..offset = sizeOf<PositionColorVertex>() * 3;
-      bufferRegion
-        ..buffer = vertexBufferCcw
-        ..offset = 0
-        ..size = sizeOf<PositionColorVertex>() * 3;
-      sdlxUploadToGpuBuffer(
-        copyPass,
-        transferBufferLocation,
-        bufferRegion,
-        false,
+      final transferBufferLocation = SdlxGpuTransferBufferLocation(
+        transferBuffer: transferBuffer,
+        offset: sizeOf<PositionColorVertex>() * 3,
       );
+      final bufferRegion = SdlxGpuBufferRegion(
+        buffer: vertexBufferCcw,
+        //offset: 0,
+        size: sizeOf<PositionColorVertex>() * 3,
+      );
+      sdlxUploadToGpuBuffer(copyPass, transferBufferLocation, bufferRegion);
     }
     sdlEndGpuCopyPass(copyPass);
     sdlSubmitGpuCommandBuffer(uploadCommandBuffer);
@@ -277,18 +286,16 @@ class CullMode extends Common {
     sdlBindGpuGraphicsPipeline(context.renderPass, pipelines[currentMode]);
     {
       sdlxSetGpuViewport(context.renderPass, leftViewport);
-      sdlxBindGpuVertexBuffers(
-        context.renderPass,
-        bindings: [SdlxGpuBufferBinding()..buffer = vertexBufferCw],
-      );
+      sdlxBindGpuVertexBuffers(context.renderPass, [
+        SdlxGpuBufferBinding(buffer: vertexBufferCw),
+      ]);
       sdlDrawGpuPrimitives(context.renderPass, 3, 1, 0, 0);
     }
     {
       sdlxSetGpuViewport(context.renderPass, rightViewport);
-      sdlxBindGpuVertexBuffers(
-        context.renderPass,
-        bindings: [SdlxGpuBufferBinding()..buffer = vertexBufferCcw],
-      );
+      sdlxBindGpuVertexBuffers(context.renderPass, [
+        SdlxGpuBufferBinding(buffer: vertexBufferCcw),
+      ]);
       sdlDrawGpuPrimitives(context.renderPass, 3, 1, 0, 0);
     }
     return true;

@@ -1,5 +1,6 @@
 // https://github.com/TheSpydog/SDL_gpu_examples/blob/main/Examples/InstancedIndexed.c
 import 'dart:ffi';
+
 import 'package:sdl3/sdl3.dart';
 import 'package:sdl3_gpu_examples/sdl3_gpu_examples.dart';
 
@@ -103,41 +104,49 @@ class InstancedIndexed extends Common {
       return false;
     }
     // Create the pipeline
-    final pipelineCreateInfo = SdlxGpuGraphicsPipelineCreateInfo()
-      ..targetInfo.colorTargetDescriptions = [
-        // color target
-        SdlxGpuColorTargetDescription()
-          ..format = sdlGetGpuSwapchainTextureFormat(
-            context.device,
-            context.window,
+    final pipelineCreateInfo = SdlxGpuGraphicsPipelineCreateInfo(
+      targetInfo: SdlxGpuGraphicsPipelineTargetInfo(
+        colorTargetDescriptions: [
+          // color target
+          SdlxGpuColorTargetDescription(
+            format: sdlGetGpuSwapchainTextureFormat(
+              context.device,
+              context.window,
+            ),
           ),
-      ]
-      ..vertexInputState.vertexBufferDescriptions = [
-        // vertex buffer
-        SdlxGpuVertexBufferDescription()
-          ..slot = 0
-          ..inputRate = SdlkGpuVertexinputrate.vertex
-          ..instanceStepRate = 0
-          ..pitch = sizeOf<PositionColorVertex>(),
-      ]
-      ..vertexInputState.vertexAttributes = [
-        // vertex attribute[0]
-        SdlxGpuVertexAttribute()
-          ..bufferSlot = 0
-          ..format = SdlkGpuVertexelementformat.float3
-          ..location = 0
-          ..offset = 0,
-        // vertex attribute[1]
-        SdlxGpuVertexAttribute()
-          ..bufferSlot = 0
-          ..format = SdlkGpuVertexelementformat.ubyte4Norm
-          ..location = 1
-          ..offset = sizeOf<Float>() * 3,
-      ]
-      ..primitiveType = SdlkGpuPrimitivetype.trianglelist
-      ..vertexShader = vertexShader
-      ..fragmentShader = fragmentShader;
-    //      ..rasterizerState.fillMode = SdlkGpuFillmode.fill;
+        ],
+      ),
+      vertexInputState: SdlxGpuVertexInputState(
+        vertexBufferDescriptions: [
+          // vertex buffer
+          SdlxGpuVertexBufferDescription(
+            //slot: 0,
+            //inputRate: SdlkGpuVertexinputrate.vertex,
+            //instanceStepRate: 0,
+            pitch: sizeOf<PositionColorVertex>(),
+          ),
+        ],
+        vertexAttributes: [
+          // vertex attribute[0]
+          const SdlxGpuVertexAttribute(
+            //bufferSlot: 0,
+            format: SdlkGpuVertexelementformat.float3,
+            //location: 0,
+            //offset: 0,
+          ),
+          // vertex attribute[1]
+          SdlxGpuVertexAttribute(
+            //bufferSlot: 0,
+            format: SdlkGpuVertexelementformat.ubyte4Norm,
+            location: 1,
+            offset: sizeOf<Float>() * 3,
+          ),
+        ],
+      ),
+      //primitiveType: SdlkGpuPrimitivetype.trianglelist,
+      vertexShader: vertexShader,
+      fragmentShader: fragmentShader,
+    );
     pipeline = sdlxCreateGpuGraphicsPipeline(
       context.device,
       pipelineCreateInfo,
@@ -152,22 +161,25 @@ class InstancedIndexed extends Common {
     // Create the vertex and index buffers
     vertexBuffer = sdlxCreateGpuBuffer(
       context.device,
-      SdlxGpuBufferCreateInfo()
-        ..usage = SdlkGpuBufferusage.vertex
-        ..size = sizeOf<PositionColorVertex>() * 9,
+      SdlxGpuBufferCreateInfo(
+        usage: SdlkGpuBufferusage.vertex,
+        size: sizeOf<PositionColorVertex>() * 9,
+      ),
     );
     indexBuffer = sdlxCreateGpuBuffer(
       context.device,
-      SdlxGpuBufferCreateInfo()
-        ..usage = SdlkGpuBufferusage.index
-        ..size = sizeOf<Uint16>() * 6,
+      SdlxGpuBufferCreateInfo(
+        usage: SdlkGpuBufferusage.index,
+        size: sizeOf<Uint16>() * 6,
+      ),
     );
     // Set the buffer data
     final transferBuffer = sdlxCreateGpuTransferBuffer(
       context.device,
-      SdlxGpuTransferBufferCreateInfo()
-        ..usage = SdlkGpuTransferbufferusage.upload
-        ..size = sizeOf<PositionColorVertex>() * 9 + sizeOf<Uint16>() * 6,
+      SdlxGpuTransferBufferCreateInfo(
+        //usage: SdlkGpuTransferbufferusage.upload,
+        size: sizeOf<PositionColorVertex>() * 9 + sizeOf<Uint16>() * 6,
+      ),
     );
     final transferData = sdlMapGpuTransferBuffer(
       context.device,
@@ -193,25 +205,27 @@ class InstancedIndexed extends Common {
     final copyPass = sdlBeginGpuCopyPass(uploadCommandBuffer);
     sdlxUploadToGpuBuffer(
       copyPass,
-      SdlxGpuTransferBufferLocation()
-        ..transferBuffer = transferBuffer
-        ..offset = 0,
-      SdlxGpuBufferRegion()
-        ..buffer = vertexBuffer
-        ..offset = 0
-        ..size = sizeOf<PositionColorVertex>() * 9,
-      false,
+      SdlxGpuTransferBufferLocation(
+        transferBuffer: transferBuffer,
+        //offset: 0,
+      ),
+      SdlxGpuBufferRegion(
+        buffer: vertexBuffer,
+        //offset: 0,
+        size: sizeOf<PositionColorVertex>() * 9,
+      ),
     );
     sdlxUploadToGpuBuffer(
       copyPass,
-      SdlxGpuTransferBufferLocation()
-        ..transferBuffer = transferBuffer
-        ..offset = sizeOf<PositionColorVertex>() * 9,
-      SdlxGpuBufferRegion()
-        ..buffer = indexBuffer
-        ..offset = 0
-        ..size = sizeOf<Uint16>() * 6,
-      false,
+      SdlxGpuTransferBufferLocation(
+        transferBuffer: transferBuffer,
+        offset: sizeOf<PositionColorVertex>() * 9,
+      ),
+      SdlxGpuBufferRegion(
+        buffer: indexBuffer,
+        //offset: 0,
+        size: sizeOf<Uint16>() * 6,
+      ),
     );
     sdlEndGpuCopyPass(copyPass);
     sdlSubmitGpuCommandBuffer(uploadCommandBuffer);
@@ -241,20 +255,19 @@ class InstancedIndexed extends Common {
     final vertexOffset = useVertexOffset ? 3 : 0;
     final indexOffset = useIndexOffset ? 3 : 0;
     sdlBindGpuGraphicsPipeline(context.renderPass, pipeline);
-    sdlxBindGpuVertexBuffers(
-      context.renderPass,
-      bindings: [
-        SdlxGpuBufferBinding()
-          ..buffer = vertexBuffer
-          ..offset = 0,
-      ],
-    );
+    sdlxBindGpuVertexBuffers(context.renderPass, [
+      SdlxGpuBufferBinding(
+        buffer: vertexBuffer,
+        //offset: 0,
+      ),
+    ]);
     if (useIndexBuffer) {
       sdlxBindGpuIndexBuffer(
         context.renderPass,
-        SdlxGpuBufferBinding()
-          ..buffer = indexBuffer
-          ..offset = 0,
+        SdlxGpuBufferBinding(
+          buffer: indexBuffer,
+          //offset: 0,
+        ),
         SdlkGpuIndexelementsize.on16Bit,
       );
       sdlDrawGpuIndexedPrimitives(

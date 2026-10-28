@@ -1,5 +1,6 @@
 // https://github.com/TheSpydog/SDL_gpu_examples/blob/main/Examples/BasicVertexBuffer.c
 import 'dart:ffi';
+
 import 'package:sdl3/sdl3.dart';
 import 'package:sdl3_gpu_examples/sdl3_gpu_examples.dart';
 
@@ -91,41 +92,45 @@ class BasicVertexBuffer extends Common {
       return false;
     }
     // Create the pipeline
-    final pipelineCreateInfo = SdlxGpuGraphicsPipelineCreateInfo()
-      ..targetInfo.colorTargetDescriptions = [
-        // color target
-        SdlxGpuColorTargetDescription()
-          ..format = sdlGetGpuSwapchainTextureFormat(
-            context.device,
-            context.window,
+    final pipelineCreateInfo = SdlxGpuGraphicsPipelineCreateInfo(
+      targetInfo: SdlxGpuGraphicsPipelineTargetInfo(
+        colorTargetDescriptions: [
+          SdlxGpuColorTargetDescription(
+            format: sdlGetGpuSwapchainTextureFormat(
+              context.device,
+              context.window,
+            ),
           ),
-      ]
-      ..vertexInputState.vertexBufferDescriptions = [
-        // vertex buffer
-        SdlxGpuVertexBufferDescription()
-          ..slot = 0
-          ..inputRate = SdlkGpuVertexinputrate.vertex
-          ..instanceStepRate = 0
-          ..pitch = sizeOf<PositionColorVertex>(),
-      ]
-      ..vertexInputState.vertexAttributes = [
-        // vertex attribute[0]
-        SdlxGpuVertexAttribute()
-          ..bufferSlot = 0
-          ..format = SdlkGpuVertexelementformat.float3
-          ..location = 0
-          ..offset = 0,
-        // vertex attribute[1]
-        SdlxGpuVertexAttribute()
-          ..bufferSlot = 0
-          ..format = SdlkGpuVertexelementformat.ubyte4Norm
-          ..location = 1
-          ..offset = sizeOf<Float>() * 3,
-      ]
-      ..primitiveType = SdlkGpuPrimitivetype.trianglelist
-      ..vertexShader = vertexShader
-      ..fragmentShader = fragmentShader
-      ..rasterizerState.fillMode = SdlkGpuFillmode.fill;
+        ],
+      ),
+      vertexInputState: SdlxGpuVertexInputState(
+        vertexBufferDescriptions: [
+          SdlxGpuVertexBufferDescription(
+            //slot: 0,
+            //inputRate: SdlkGpuVertexinputrate.vertex,
+            //instanceStepRate: 0,
+            pitch: sizeOf<PositionColorVertex>(),
+          ),
+        ],
+        vertexAttributes: [
+          const SdlxGpuVertexAttribute(
+            //bufferSlot: 0,
+            format: SdlkGpuVertexelementformat.float3,
+            //location: 0,
+            //offset: 0,
+          ),
+          SdlxGpuVertexAttribute(
+            //bufferSlot: 0,
+            format: SdlkGpuVertexelementformat.ubyte4Norm,
+            location: 1,
+            offset: sizeOf<Float>() * 3,
+          ),
+        ],
+      ),
+      //primitiveType: SdlkGpuPrimitivetype.trianglelist,
+      vertexShader: vertexShader,
+      fragmentShader: fragmentShader,
+    );
     pipeline = sdlxCreateGpuGraphicsPipeline(
       context.device,
       pipelineCreateInfo,
@@ -136,16 +141,18 @@ class BasicVertexBuffer extends Common {
     // Create the vertex buffer
     vertexBuffer = sdlxCreateGpuBuffer(
       context.device,
-      SdlxGpuBufferCreateInfo()
-        ..usage = SdlkGpuBufferusage.vertex
-        ..size = sizeOf<PositionColorVertex>() * 3,
+      SdlxGpuBufferCreateInfo(
+        usage: SdlkGpuBufferusage.vertex,
+        size: sizeOf<PositionColorVertex>() * 3,
+      ),
     );
     // To get data into the vertex buffer, we have to use a transfer buffer
     final transferBuffer = sdlxCreateGpuTransferBuffer(
       context.device,
-      SdlxGpuTransferBufferCreateInfo()
-        ..usage = SdlkGpuTransferbufferusage.upload
-        ..size = sizeOf<PositionColorVertex>() * 3,
+      SdlxGpuTransferBufferCreateInfo(
+        //usage: SdlkGpuTransferbufferusage.upload,
+        size: sizeOf<PositionColorVertex>() * 3,
+      ),
     );
     final transferData = sdlMapGpuTransferBuffer(
       context.device,
@@ -161,14 +168,15 @@ class BasicVertexBuffer extends Common {
     final copyPass = sdlBeginGpuCopyPass(uploadCommandBuffer);
     sdlxUploadToGpuBuffer(
       copyPass,
-      SdlxGpuTransferBufferLocation()
-        ..transferBuffer = transferBuffer
-        ..offset = 0,
-      SdlxGpuBufferRegion()
-        ..buffer = vertexBuffer
-        ..offset = 0
-        ..size = sizeOf<PositionColorVertex>() * 3,
-      false,
+      SdlxGpuTransferBufferLocation(
+        transferBuffer: transferBuffer,
+        //offset: 0,
+      ),
+      SdlxGpuBufferRegion(
+        buffer: vertexBuffer,
+        //offset: 0,
+        size: sizeOf<PositionColorVertex>() * 3,
+      ),
     );
     sdlEndGpuCopyPass(copyPass);
     sdlSubmitGpuCommandBuffer(uploadCommandBuffer);
@@ -191,10 +199,9 @@ class BasicVertexBuffer extends Common {
   @override
   bool draw(Context context) {
     sdlBindGpuGraphicsPipeline(context.renderPass, pipeline);
-    sdlxBindGpuVertexBuffers(
-      context.renderPass,
-      bindings: [SdlxGpuBufferBinding()..buffer = vertexBuffer],
-    );
+    sdlxBindGpuVertexBuffers(context.renderPass, [
+      SdlxGpuBufferBinding(buffer: vertexBuffer),
+    ]);
     sdlDrawGpuPrimitives(context.renderPass, 3, 1, 0, 0);
     return true;
   }

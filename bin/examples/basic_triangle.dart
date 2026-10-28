@@ -1,5 +1,6 @@
 // https://github.com/TheSpydog/SDL_gpu_examples/blob/main/Examples/BasicTriangle.c
 import 'dart:ffi';
+
 import 'package:sdl3/sdl3.dart';
 import 'package:sdl3_gpu_examples/sdl3_gpu_examples.dart';
 
@@ -69,18 +70,15 @@ class BasicTriangle extends Common {
     useWireframeMode = false;
     useSmallViewport = false;
     useScissorRect = false;
-    smallViewport = SdlxGpuViewport()
-      ..x = 160
-      ..y = 120
-      ..w = 320
-      ..h = 240
-      ..minDepth = 0.1
-      ..maxDepth = 1.0;
-    scissorRect = SdlxRect()
-      ..x = 230
-      ..y = 240
-      ..w = 320
-      ..h = 240;
+    smallViewport = const SdlxGpuViewport(
+      x: 160,
+      y: 120,
+      w: 320,
+      h: 240,
+      minDepth: 0.1,
+      //maxDepth: 1.0,
+    );
+    scissorRect = const SdlxRect(230, 240, 320, 240);
     final vertexShader = loadShaderFromSource(
       context.device,
       gVertexSource,
@@ -102,24 +100,37 @@ class BasicTriangle extends Common {
       return false;
     }
 
-    final pipelineCreateInfo = SdlxGpuGraphicsPipelineCreateInfo()
-      ..targetInfo.colorTargetDescriptions = [
-        SdlxGpuColorTargetDescription()
-          ..format = sdlGetGpuSwapchainTextureFormat(
+    final targetInfo = SdlxGpuGraphicsPipelineTargetInfo(
+      colorTargetDescriptions: [
+        SdlxGpuColorTargetDescription(
+          format: sdlGetGpuSwapchainTextureFormat(
             context.device,
             context.window,
           ),
-      ]
-      ..primitiveType = SdlkGpuPrimitivetype.trianglelist
-      ..vertexShader = vertexShader
-      ..fragmentShader = fragmentShader;
+        ),
+      ],
+    );
+
     fillPipeline = sdlxCreateGpuGraphicsPipeline(
       context.device,
-      pipelineCreateInfo..rasterizerState.fillMode = SdlkGpuFillmode.fill,
+      SdlxGpuGraphicsPipelineCreateInfo(
+        targetInfo: targetInfo,
+        //primitiveType: SdlkGpuPrimitivetype.trianglelist,
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+      ),
     );
     linePipeline = sdlxCreateGpuGraphicsPipeline(
       context.device,
-      pipelineCreateInfo..rasterizerState.fillMode = SdlkGpuFillmode.line,
+      SdlxGpuGraphicsPipelineCreateInfo(
+        targetInfo: targetInfo,
+        rasterizerState: const SdlxGpuRasterizerState(
+          fillMode: SdlkGpuFillmode.line,
+        ),
+        //primitiveType: SdlkGpuPrimitivetype.trianglelist,
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+      ),
     );
     // Clean up shader resources
     sdlReleaseGpuShader(context.device, vertexShader);

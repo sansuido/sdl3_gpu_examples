@@ -1,5 +1,6 @@
 // https://github.com/TheSpydog/SDL_gpu_examples/blob/main/Examples/BasicCompute.c
 import 'dart:ffi';
+
 import 'package:sdl3/sdl3.dart';
 import 'package:sdl3_gpu_examples/sdl3_gpu_examples.dart';
 
@@ -80,82 +81,98 @@ class BasicCompute extends Common {
 
   @override
   bool init(Context context) {
-    final vertexShader = loadShaderFromSource(
+    var width = 0;
+    var height = 0;
+    final vdvertexShaderRec = sdlxShaderCrossGraphicsShaderFromHlsl(
       context.device,
-      gVertexSource,
-      format: format,
-      stage: SdlkGpuShaderstage.vertex,
+      format,
+      const SdlxShaderCrossHlslInfo(
+        source: gVertexSource,
+        //shaderStage: SdlkGpuShaderstage.vertex,
+        entrypoint: 'main',
+      ),
     );
-    if (vertexShader == nullptr) {
+    if (vdvertexShaderRec == null) {
       sdlLog('Failed to create vertex shader!');
       return false;
     }
-    final fragmentShader = loadShaderFromSource(
+    final vertexShader = vdvertexShaderRec.shader;
+    final fragmentShaderRec = sdlxShaderCrossGraphicsShaderFromHlsl(
       context.device,
-      gFragmentSource,
-      format: format,
-      stage: SdlkGpuShaderstage.fragment,
-      numSamplers: 1,
+      format,
+      const SdlxShaderCrossHlslInfo(
+        source: gFragmentSource,
+        shaderStage: SdlkGpuShaderstage.fragment,
+        entrypoint: 'main',
+      ),
     );
-    if (fragmentShader == nullptr) {
+    if (fragmentShaderRec == null) {
       sdlLog('Failed to create fragment shader!');
       return false;
     }
-    final computePipeline = createComputePipelineFromSource(
+    final fragmentShader = fragmentShaderRec.shader;
+    final computePipelineRec = sdlxShaderCrossComputePipelineFromHlsl(
       context.device,
-      gComputeSource,
-      format: format,
-      numReadwriteStorageTextures: 1,
-      threadcountX: 8,
-      threadcountY: 8,
-      threadcountZ: 1,
+      format,
+      const SdlxShaderCrossHlslInfo(source: gComputeSource, entrypoint: 'main'),
     );
-    if (computePipeline == nullptr) {
+    if (computePipelineRec == null) {
       sdlLog('Failed to create compute shader!');
       return false;
     }
+    final computePipeline = computePipelineRec.pipeline;
     // Create the pipeline
-    final pipelineCreateInfo = SdlxGpuGraphicsPipelineCreateInfo()
-      ..targetInfo.colorTargetDescriptions = [
-        // color target
-        SdlxGpuColorTargetDescription()
-          ..format = sdlGetGpuSwapchainTextureFormat(
-            context.device,
-            context.window,
-          )
-          ..blendState.enableBlend = 1
-          ..blendState.alphaBlendOp = SdlkGpuBlendop.add
-          ..blendState.colorBlendOp = SdlkGpuBlendop.add
-          ..blendState.srcColorBlendfactor = SdlkGpuBlendfactor.srcAlpha
-          ..blendState.srcAlphaBlendfactor = SdlkGpuBlendfactor.srcAlpha
-          ..blendState.dstColorBlendfactor = SdlkGpuBlendfactor.oneMinusSrcAlpha
-          ..blendState.dstAlphaBlendfactor =
-              SdlkGpuBlendfactor.oneMinusSrcAlpha,
-      ]
-      ..vertexInputState.vertexBufferDescriptions = [
-        SdlxGpuVertexBufferDescription()
-          ..slot = 0
-          ..inputRate = SdlkGpuVertexinputrate.vertex
-          ..instanceStepRate = 0
-          ..pitch = sizeOf<PositionTextureVertex>(),
-      ]
-      ..vertexInputState.vertexAttributes = [
-        // vertex attribute[0]
-        SdlxGpuVertexAttribute()
-          ..bufferSlot = 0
-          ..format = SdlkGpuVertexelementformat.float3
-          ..location = 0
-          ..offset = 0,
-        // vertex attribute[1]
-        SdlxGpuVertexAttribute()
-          ..bufferSlot = 0
-          ..format = SdlkGpuVertexelementformat.float2
-          ..location = 1
-          ..offset = sizeOf<Float>() * 3,
-      ]
-      ..primitiveType = SdlkGpuPrimitivetype.trianglelist
-      ..vertexShader = vertexShader
-      ..fragmentShader = fragmentShader;
+    final pipelineCreateInfo = SdlxGpuGraphicsPipelineCreateInfo(
+      vertexShader: vertexShader,
+      fragmentShader: fragmentShader,
+      //primitiveType: SdlkGpuPrimitivetype.trianglelist,
+      vertexInputState: SdlxGpuVertexInputState(
+        vertexBufferDescriptions: [
+          SdlxGpuVertexBufferDescription(
+            //slot: 0,
+            //inputRate: SdlkGpuVertexinputrate.vertex,
+            //instanceStepRate: 0,
+            pitch: sizeOf<PositionTextureVertex>(),
+          ),
+        ],
+        vertexAttributes: [
+          // vertex attribute[0]
+          const SdlxGpuVertexAttribute(
+            //bufferSlot: 0,
+            format: SdlkGpuVertexelementformat.float3,
+            //location: 0,
+            //offset: 0,
+          ),
+          // vertex attribute[1]
+          SdlxGpuVertexAttribute(
+            //bufferSlot: 0,
+            format: SdlkGpuVertexelementformat.float2,
+            location: 1,
+            offset: sizeOf<Float>() * 3,
+          ),
+        ],
+      ),
+      targetInfo: SdlxGpuGraphicsPipelineTargetInfo(
+        colorTargetDescriptions: [
+          // color target
+          SdlxGpuColorTargetDescription(
+            format: sdlGetGpuSwapchainTextureFormat(
+              context.device,
+              context.window,
+            ),
+            blendState: const SdlxGpuColorTargetBlendState(
+              enableBlend: true,
+              alphaBlendOp: SdlkGpuBlendop.add,
+              colorBlendOp: SdlkGpuBlendop.add,
+              srcColorBlendfactor: SdlkGpuBlendfactor.srcAlpha,
+              srcAlphaBlendfactor: SdlkGpuBlendfactor.srcAlpha,
+              dstColorBlendfactor: SdlkGpuBlendfactor.oneMinusSrcAlpha,
+              dstAlphaBlendfactor: SdlkGpuBlendfactor.oneMinusSrcAlpha,
+            ),
+          ),
+        ],
+      ),
+    );
     pipeline = sdlxCreateGpuGraphicsPipeline(
       context.device,
       pipelineCreateInfo,
@@ -166,38 +183,45 @@ class BasicCompute extends Common {
     }
     sdlReleaseGpuShader(context.device, vertexShader);
     sdlReleaseGpuShader(context.device, fragmentShader);
-    final size = SdlxPoint();
-    sdlxGetWindowSizeInPixels(context.window, size);
+    final rec = sdlxGetWindowSizeInPixels(context.window);
+    if (rec != null) {
+      width = rec.w;
+      height = rec.h;
+    }
     texture = sdlxCreateGpuTexture(
       context.device,
-      SdlxGpuTextureCreateInfo()
-        ..type = SdlkGpuTexturetype.on2D
-        ..format = SdlkGpuTextureformat.r8G8B8A8Unorm
-        ..width = size.x
-        ..height = size.y
-        ..layerCountOrDepth = 1
-        ..numLevels = 1
-        ..usage =
+      SdlxGpuTextureCreateInfo(
+        //type: SdlkGpuTexturetype.on2D,
+        format: SdlkGpuTextureformat.r8G8B8A8Unorm,
+        width: width,
+        height: height,
+        layerCountOrDepth: 1,
+        numLevels: 1,
+        usage:
             SdlkGpuTextureusage.computeStorageWrite |
             SdlkGpuTextureusage.sampler,
+      ),
     );
     sampler = sdlxCreateGpuSampler(
       context.device,
-      SdlxGpuSamplerCreateInfo()
-        ..addressModeU = SdlkGpuSampleraddressmode.repeat
-        ..addressModeV = SdlkGpuSampleraddressmode.repeat,
+      const SdlxGpuSamplerCreateInfo(
+        //addressModeU: SdlkGpuSampleraddressmode.repeat,
+        //addressModeV: SdlkGpuSampleraddressmode.repeat,
+      ),
     );
     vertexBuffer = sdlxCreateGpuBuffer(
       context.device,
-      SdlxGpuBufferCreateInfo()
-        ..usage = SdlkGpuBufferusage.vertex
-        ..size = sizeOf<PositionTextureVertex>() * 6,
+      SdlxGpuBufferCreateInfo(
+        usage: SdlkGpuBufferusage.vertex,
+        size: sizeOf<PositionTextureVertex>() * 6,
+      ),
     );
     final transferBuffer = sdlxCreateGpuTransferBuffer(
       context.device,
-      SdlxGpuTransferBufferCreateInfo()
-        ..usage = SdlkGpuTransferbufferusage.upload
-        ..size = sizeOf<PositionTextureVertex>() * 6,
+      SdlxGpuTransferBufferCreateInfo(
+        //usage: SdlkGpuTransferbufferusage.upload,
+        size: sizeOf<PositionTextureVertex>() * 6,
+      ),
     );
     final transferData = sdlMapGpuTransferBuffer(
       context.device,
@@ -216,23 +240,24 @@ class BasicCompute extends Common {
     final copyPass = sdlBeginGpuCopyPass(uploadCommandBuffer);
     sdlxUploadToGpuBuffer(
       copyPass,
-      SdlxGpuTransferBufferLocation()
-        ..transferBuffer = transferBuffer
-        ..offset = 0,
-      SdlxGpuBufferRegion()
-        ..buffer = vertexBuffer
-        ..offset = 0
-        ..size = sizeOf<PositionTextureVertex>() * 6,
-      false,
+      SdlxGpuTransferBufferLocation(
+        transferBuffer: transferBuffer,
+        //offset: 0,
+      ),
+      SdlxGpuBufferRegion(
+        buffer: vertexBuffer,
+        //offset: 0,
+        size: sizeOf<PositionTextureVertex>() * 6,
+      ),
     );
     sdlEndGpuCopyPass(copyPass);
 
     final computePass = sdlxBeginGpuComputePass(
       uploadCommandBuffer,
-      textures: [SdlxGpuStorageTextureReadWriteBinding()..texture = texture],
+      textures: [SdlxGpuStorageTextureReadWriteBinding(texture: texture)],
     );
     sdlBindGpuComputePipeline(computePass, computePipeline);
-    sdlDispatchGpuCompute(computePass, size.x ~/ 8, size.y ~/ 8, 1);
+    sdlDispatchGpuCompute(computePass, width ~/ 8, height ~/ 8, 1);
     sdlEndGpuComputePass(computePass);
 
     sdlSubmitGpuCommandBuffer(uploadCommandBuffer);
@@ -245,22 +270,15 @@ class BasicCompute extends Common {
   @override
   bool draw(Context context) {
     sdlBindGpuGraphicsPipeline(context.renderPass, pipeline);
-    sdlxBindGpuVertexBuffers(
-      context.renderPass,
-      bindings: [
-        SdlxGpuBufferBinding()
-          ..buffer = vertexBuffer
-          ..offset = 0,
-      ],
-    );
-    sdlxBindGpuFragmentSamplers(
-      context.renderPass,
-      bindings: [
-        SdlxGpuTextureSamplerBinding()
-          ..texture = texture
-          ..sampler = sampler,
-      ],
-    );
+    sdlxBindGpuVertexBuffers(context.renderPass, [
+      SdlxGpuBufferBinding(
+        buffer: vertexBuffer,
+        //offset: 0,
+      ),
+    ]);
+    sdlxBindGpuFragmentSamplers(context.renderPass, [
+      SdlxGpuTextureSamplerBinding(texture: texture, sampler: sampler),
+    ]);
     sdlDrawGpuPrimitives(context.renderPass, 6, 1, 0, 0);
     return true;
   }

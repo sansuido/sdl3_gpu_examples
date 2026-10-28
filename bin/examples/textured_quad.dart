@@ -1,5 +1,6 @@
 // https://github.com/TheSpydog/SDL_gpu_examples/blob/main/Examples/TexturedQuad.c
 import 'dart:ffi';
+
 import 'package:sdl3/sdl3.dart';
 import 'package:sdl3_gpu_examples/sdl3_gpu_examples.dart';
 
@@ -113,40 +114,48 @@ class TexturedQuad extends Common {
       return false;
     }
     // Create the pipeline
-    final pipelineCreateInfo = SdlxGpuGraphicsPipelineCreateInfo()
-      ..targetInfo.colorTargetDescriptions = [
-        // color target
-        SdlxGpuColorTargetDescription()
-          ..format = sdlGetGpuSwapchainTextureFormat(
-            context.device,
-            context.window,
+    final pipelineCreateInfo = SdlxGpuGraphicsPipelineCreateInfo(
+      targetInfo: SdlxGpuGraphicsPipelineTargetInfo(
+        colorTargetDescriptions: [
+          // color target
+          SdlxGpuColorTargetDescription(
+            format: sdlGetGpuSwapchainTextureFormat(
+              context.device,
+              context.window,
+            ),
           ),
-      ]
-      ..vertexInputState.vertexBufferDescriptions = [
-        // vertex buffer
-        SdlxGpuVertexBufferDescription()
-          ..slot = 0
-          ..inputRate = SdlkGpuVertexinputrate.vertex
-          ..instanceStepRate = 0
-          ..pitch = sizeOf<PositionTextureVertex>(),
-      ]
-      ..vertexInputState.vertexAttributes = [
-        // vertex attribute[0]
-        SdlxGpuVertexAttribute()
-          ..bufferSlot = 0
-          ..format = SdlkGpuVertexelementformat.float3
-          ..location = 0
-          ..offset = 0,
-        // vertex attribute[1]
-        SdlxGpuVertexAttribute()
-          ..bufferSlot = 0
-          ..format = SdlkGpuVertexelementformat.float2
-          ..location = 1
-          ..offset = sizeOf<Float>() * 3,
-      ]
-      ..primitiveType = SdlkGpuPrimitivetype.trianglelist
-      ..vertexShader = vertexShader
-      ..fragmentShader = fragmentShader;
+        ],
+      ),
+      vertexInputState: SdlxGpuVertexInputState(
+        vertexBufferDescriptions: [
+          SdlxGpuVertexBufferDescription(
+            //slot: 0,
+            //inputRate: SdlkGpuVertexinputrate.vertex,
+            //instanceStepRate: 0,
+            pitch: sizeOf<PositionTextureVertex>(),
+          ),
+        ],
+        vertexAttributes: [
+          // vertex attribute[0]
+          const SdlxGpuVertexAttribute(
+            //bufferSlot: 0,
+            format: SdlkGpuVertexelementformat.float3,
+            //location: 0,
+            //offset: 0,
+          ),
+          // vertex attribute[1]
+          SdlxGpuVertexAttribute(
+            //bufferSlot: 0,
+            format: SdlkGpuVertexelementformat.float2,
+            location: 1,
+            offset: sizeOf<Float>() * 3,
+          ),
+        ],
+      ),
+      //primitiveType: SdlkGpuPrimitivetype.trianglelist,
+      vertexShader: vertexShader,
+      fragmentShader: fragmentShader,
+    );
     pipeline = sdlxCreateGpuGraphicsPipeline(
       context.device,
       pipelineCreateInfo,
@@ -164,90 +173,97 @@ class TexturedQuad extends Common {
       ..add(
         sdlxCreateGpuSampler(
           context.device,
-          SdlxGpuSamplerCreateInfo()
-            ..minFilter = SdlkGpuFilter.nearest
-            ..magFilter = SdlkGpuFilter.nearest
-            ..mipmapMode = SdlkGpuSamplermipmapmode.nearest
-            ..addressModeU = SdlkGpuSampleraddressmode.clampToEdge
-            ..addressModeV = SdlkGpuSampleraddressmode.clampToEdge
-            ..addressModeW = SdlkGpuSampleraddressmode.clampToEdge,
+          const SdlxGpuSamplerCreateInfo(
+            //minFilter: SdlkGpuFilter.nearest,
+            //magFilter: SdlkGpuFilter.nearest,
+            //mipmapMode: SdlkGpuSamplermipmapmode.nearest,
+            addressModeU: SdlkGpuSampleraddressmode.clampToEdge,
+            addressModeV: SdlkGpuSampleraddressmode.clampToEdge,
+            addressModeW: SdlkGpuSampleraddressmode.clampToEdge,
+          ),
         ),
       )
       // [1]
       ..add(
         sdlxCreateGpuSampler(
           context.device,
-          SdlxGpuSamplerCreateInfo()
-            ..minFilter = SdlkGpuFilter.nearest
-            ..magFilter = SdlkGpuFilter.nearest
-            ..mipmapMode = SdlkGpuSamplermipmapmode.nearest
-            ..addressModeU = SdlkGpuSampleraddressmode.repeat
-            ..addressModeV = SdlkGpuSampleraddressmode.repeat
-            ..addressModeW = SdlkGpuSampleraddressmode.repeat,
+          const SdlxGpuSamplerCreateInfo(
+            //minFilter: SdlkGpuFilter.nearest,
+            //magFilter: SdlkGpuFilter.nearest,
+            //mipmapMode: SdlkGpuSamplermipmapmode.nearest,
+            //addressModeU: SdlkGpuSampleraddressmode.repeat,
+            //addressModeV: SdlkGpuSampleraddressmode.repeat,
+            //addressModeW: SdlkGpuSampleraddressmode.repeat,
+          ),
         ),
       )
       // [2]
       ..add(
         sdlxCreateGpuSampler(
           context.device,
-          SdlxGpuSamplerCreateInfo()
-            ..minFilter = SdlkGpuFilter.linear
-            ..magFilter = SdlkGpuFilter.linear
-            ..mipmapMode = SdlkGpuSamplermipmapmode.linear
-            ..addressModeU = SdlkGpuSampleraddressmode.clampToEdge
-            ..addressModeV = SdlkGpuSampleraddressmode.clampToEdge
-            ..addressModeW = SdlkGpuSampleraddressmode.clampToEdge,
+          const SdlxGpuSamplerCreateInfo(
+            minFilter: SdlkGpuFilter.linear,
+            magFilter: SdlkGpuFilter.linear,
+            mipmapMode: SdlkGpuSamplermipmapmode.linear,
+            addressModeU: SdlkGpuSampleraddressmode.clampToEdge,
+            addressModeV: SdlkGpuSampleraddressmode.clampToEdge,
+            addressModeW: SdlkGpuSampleraddressmode.clampToEdge,
+          ),
         ),
       )
       // [3]
       ..add(
         sdlxCreateGpuSampler(
           context.device,
-          SdlxGpuSamplerCreateInfo()
-            ..minFilter = SdlkGpuFilter.linear
-            ..magFilter = SdlkGpuFilter.linear
-            ..mipmapMode = SdlkGpuSamplermipmapmode.linear
-            ..addressModeU = SdlkGpuSampleraddressmode.repeat
-            ..addressModeV = SdlkGpuSampleraddressmode.repeat
-            ..addressModeW = SdlkGpuSampleraddressmode.repeat,
+          const SdlxGpuSamplerCreateInfo(
+            minFilter: SdlkGpuFilter.linear,
+            magFilter: SdlkGpuFilter.linear,
+            mipmapMode: SdlkGpuSamplermipmapmode.linear,
+            //addressModeU: SdlkGpuSampleraddressmode.repeat,
+            //addressModeV: SdlkGpuSampleraddressmode.repeat,
+            //addressModeW: SdlkGpuSampleraddressmode.repeat,
+          ),
         ),
       )
       // [4]
       ..add(
         sdlxCreateGpuSampler(
           context.device,
-          SdlxGpuSamplerCreateInfo()
-            ..minFilter = SdlkGpuFilter.linear
-            ..magFilter = SdlkGpuFilter.linear
-            ..mipmapMode = SdlkGpuSamplermipmapmode.linear
-            ..addressModeU = SdlkGpuSampleraddressmode.clampToEdge
-            ..addressModeV = SdlkGpuSampleraddressmode.clampToEdge
-            ..addressModeW = SdlkGpuSampleraddressmode.clampToEdge
-            ..enableAnisotropy = 1
-            ..maxAnisotropy = 4,
+          const SdlxGpuSamplerCreateInfo(
+            minFilter: SdlkGpuFilter.linear,
+            magFilter: SdlkGpuFilter.linear,
+            mipmapMode: SdlkGpuSamplermipmapmode.linear,
+            addressModeU: SdlkGpuSampleraddressmode.clampToEdge,
+            addressModeV: SdlkGpuSampleraddressmode.clampToEdge,
+            addressModeW: SdlkGpuSampleraddressmode.clampToEdge,
+            enableAnisotropy: true,
+            maxAnisotropy: 4,
+          ),
         ),
       )
       // [5]
       ..add(
         sdlxCreateGpuSampler(
           context.device,
-          SdlxGpuSamplerCreateInfo()
-            ..minFilter = SdlkGpuFilter.linear
-            ..magFilter = SdlkGpuFilter.linear
-            ..mipmapMode = SdlkGpuSamplermipmapmode.linear
-            ..addressModeU = SdlkGpuSampleraddressmode.repeat
-            ..addressModeV = SdlkGpuSampleraddressmode.repeat
-            ..addressModeW = SdlkGpuSampleraddressmode.repeat
-            ..enableAnisotropy = 1
-            ..maxAnisotropy = 4,
+          const SdlxGpuSamplerCreateInfo(
+            minFilter: SdlkGpuFilter.linear,
+            magFilter: SdlkGpuFilter.linear,
+            mipmapMode: SdlkGpuSamplermipmapmode.linear,
+            //addressModeU: SdlkGpuSampleraddressmode.repeat,
+            //addressModeV: SdlkGpuSampleraddressmode.repeat,
+            //addressModeW: SdlkGpuSampleraddressmode.repeat,
+            enableAnisotropy: true,
+            maxAnisotropy: 4,
+          ),
         ),
       );
     // Create the GPU resources
     vertexBuffer = sdlxCreateGpuBuffer(
       context.device,
-      SdlxGpuBufferCreateInfo()
-        ..usage = SdlkGpuBufferusage.vertex
-        ..size = sizeOf<PositionTextureVertex>() * 4,
+      SdlxGpuBufferCreateInfo(
+        usage: SdlkGpuBufferusage.vertex,
+        size: sizeOf<PositionTextureVertex>() * 4,
+      ),
     );
     sdlSetGpuBufferName(
       context.device,
@@ -256,30 +272,33 @@ class TexturedQuad extends Common {
     );
     indexBuffer = sdlxCreateGpuBuffer(
       context.device,
-      SdlxGpuBufferCreateInfo()
-        ..usage = SdlkGpuBufferusage.index
-        ..size = sizeOf<Uint16>() * 6,
+      SdlxGpuBufferCreateInfo(
+        usage: SdlkGpuBufferusage.index,
+        size: sizeOf<Uint16>() * 6,
+      ),
     );
 
     texture = sdlxCreateGpuTexture(
       context.device,
-      SdlxGpuTextureCreateInfo()
-        ..type = SdlkGpuTexturetype.on2D
-        ..format = SdlkGpuTextureformat.r8G8B8A8Unorm
-        ..width = imageData.ref.w
-        ..height = imageData.ref.h
-        ..layerCountOrDepth = 1
-        ..numLevels = 1
-        ..usage = SdlkGpuTextureusage.sampler,
+      SdlxGpuTextureCreateInfo(
+        //type: SdlkGpuTexturetype.on2D,
+        format: SdlkGpuTextureformat.r8G8B8A8Unorm,
+        width: imageData.ref.w,
+        height: imageData.ref.h,
+        layerCountOrDepth: 1,
+        numLevels: 1,
+        usage: SdlkGpuTextureusage.sampler,
+      ),
     );
     sdlSetGpuTextureName(context.device, texture, 'Ravioli Texture 🖼️');
 
     // To get data into the vertex buffer, we have to use a transfer buffer
     final bufferTransferBuffer = sdlxCreateGpuTransferBuffer(
       context.device,
-      SdlxGpuTransferBufferCreateInfo()
-        ..usage = SdlkGpuTransferbufferusage.upload
-        ..size = sizeOf<PositionTextureVertex>() * 4 + sizeOf<Uint16>() * 6,
+      SdlxGpuTransferBufferCreateInfo(
+        //usage: SdlkGpuTransferbufferusage.upload,
+        size: sizeOf<PositionTextureVertex>() * 4 + sizeOf<Uint16>() * 6,
+      ),
     );
     final transferData = sdlMapGpuTransferBuffer(
       context.device,
@@ -300,9 +319,10 @@ class TexturedQuad extends Common {
     sdlUnmapGpuTransferBuffer(context.device, bufferTransferBuffer);
     final textureTransferBuffer = sdlxCreateGpuTransferBuffer(
       context.device,
-      SdlxGpuTransferBufferCreateInfo()
-        ..usage = SdlkGpuTransferbufferusage.upload
-        ..size = imageData.ref.w * imageData.ref.h * 4,
+      SdlxGpuTransferBufferCreateInfo(
+        //usage: SdlkGpuTransferbufferusage.upload,
+        size: imageData.ref.w * imageData.ref.h * 4,
+      ),
     );
     final textureTranferPointer = sdlMapGpuTransferBuffer(
       context.device,
@@ -310,7 +330,7 @@ class TexturedQuad extends Common {
       false,
     ).cast<Uint8>();
     sdlMemcpy(
-      textureTranferPointer,
+      textureTranferPointer.cast<Void>(),
       imageData.ref.pixels,
       imageData.ref.w * imageData.ref.h * 4,
     );
@@ -320,37 +340,40 @@ class TexturedQuad extends Common {
     final copyPass = sdlBeginGpuCopyPass(uploadCommandBuffer);
     sdlxUploadToGpuBuffer(
       copyPass,
-      SdlxGpuTransferBufferLocation()
-        ..transferBuffer = bufferTransferBuffer
-        ..offset = 0,
-      SdlxGpuBufferRegion()
-        ..buffer = vertexBuffer
-        ..offset = 0
-        ..size = sizeOf<PositionTextureVertex>() * 4,
-      false,
+      SdlxGpuTransferBufferLocation(
+        transferBuffer: bufferTransferBuffer,
+        //offset: 0,
+      ),
+      SdlxGpuBufferRegion(
+        buffer: vertexBuffer,
+        //offset: 0,
+        size: sizeOf<PositionTextureVertex>() * 4,
+      ),
     );
     sdlxUploadToGpuBuffer(
       copyPass,
-      SdlxGpuTransferBufferLocation()
-        ..transferBuffer = bufferTransferBuffer
-        ..offset = sizeOf<PositionTextureVertex>() * 4,
-      SdlxGpuBufferRegion()
-        ..buffer = indexBuffer
-        ..offset = 0
-        ..size = sizeOf<Uint16>() * 6,
-      false,
+      SdlxGpuTransferBufferLocation(
+        transferBuffer: bufferTransferBuffer,
+        offset: sizeOf<PositionTextureVertex>() * 4,
+      ),
+      SdlxGpuBufferRegion(
+        buffer: indexBuffer,
+        //offset: 0,
+        size: sizeOf<Uint16>() * 6,
+      ),
     );
     sdlxUploadToGpuTexture(
       copyPass,
-      SdlxGpuTextureTransferInfo()
-        ..transferBuffer = textureTransferBuffer
-        ..offset = 0,
-      SdlxGpuTextureRegion()
-        ..texture = texture
-        ..w = imageData.ref.w
-        ..h = imageData.ref.h
-        ..d = 1,
-      false,
+      SdlxGpuTextureTransferInfo(
+        transferBuffer: textureTransferBuffer,
+        //offset: 0,
+      ),
+      SdlxGpuTextureRegion(
+        texture: texture,
+        w: imageData.ref.w,
+        h: imageData.ref.h,
+        d: 1,
+      ),
     );
     sdlEndGpuCopyPass(copyPass);
     sdlSubmitGpuCommandBuffer(uploadCommandBuffer);
@@ -367,29 +390,26 @@ class TexturedQuad extends Common {
   @override
   bool draw(Context context) {
     sdlBindGpuGraphicsPipeline(context.renderPass, pipeline);
-    sdlxBindGpuVertexBuffers(
-      context.renderPass,
-      bindings: [
-        SdlxGpuBufferBinding()
-          ..buffer = vertexBuffer
-          ..offset = 0,
-      ],
-    );
+    sdlxBindGpuVertexBuffers(context.renderPass, [
+      SdlxGpuBufferBinding(
+        buffer: vertexBuffer,
+        //offset: 0,
+      ),
+    ]);
     sdlxBindGpuIndexBuffer(
       context.renderPass,
-      SdlxGpuBufferBinding()
-        ..buffer = indexBuffer
-        ..offset = 0,
+      SdlxGpuBufferBinding(
+        buffer: indexBuffer,
+        //offset: 0,
+      ),
       SdlkGpuIndexelementsize.on16Bit,
     );
-    sdlxBindGpuFragmentSamplers(
-      context.renderPass,
-      bindings: [
-        SdlxGpuTextureSamplerBinding()
-          ..texture = texture
-          ..sampler = samplers[currentSamplerIndex],
-      ],
-    );
+    sdlxBindGpuFragmentSamplers(context.renderPass, [
+      SdlxGpuTextureSamplerBinding(
+        texture: texture,
+        sampler: samplers[currentSamplerIndex],
+      ),
+    ]);
     sdlDrawGpuIndexedPrimitives(context.renderPass, 6, 1, 0, 0, 0);
     return true;
   }

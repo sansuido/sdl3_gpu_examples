@@ -1,13 +1,16 @@
 // https://github.com/TheSpydog/SDL_gpu_examples/blob/main/Examples/main.c
-import 'dart:ffi';
-import 'package:ffi/ffi.dart';
 import 'package:sdl3/sdl3.dart';
+
 import 'common.dart';
 import 'context.dart';
 
 class App {
   static void run(List<Common> examples, {bool usage = false}) {
     if (!sdlInit(SdlkInit.video)) {
+      return;
+    }
+    if (!sdlShaderCrossInit()) {
+      sdlQuit();
       return;
     }
     final context = Context();
@@ -19,15 +22,15 @@ class App {
       sdlLog('Welcome to the SDL_GPU example suite!');
       sdlLog('Press A/D (or LB/RB) to move between examples!');
     }
-    final event = calloc<SdlEvent>();
     while (running) {
       context.reset();
-      while (event.poll()) {
-        if (event.type == SdlkEvent.quit) {
+      SdlxEvent? event;
+      while ((event = sdlxPollEvent()) != null) {
+        if (event is SdlxQuitEvent) {
           running = false;
         }
-        if (event.type == SdlkEvent.keyDown) {
-          switch (event.key.ref.scancode) {
+        if (event is SdlxKeyboardEvent && event.type == SDL_EVENT_KEY_DOWN) {
+          switch (event.scancode) {
             case SdlkScancode.escape:
               running = false;
             case SdlkScancode.a:
@@ -72,10 +75,10 @@ class App {
       lastTime = newTime;
       running = examples[exampleIndex].appIterate(context);
     }
-    event.callocFree();
     if (exampleIndex != -1) {
       examples[exampleIndex].appQuit(context);
     }
+    sdlShaderCrossQuit();
     sdlQuit();
   }
 }

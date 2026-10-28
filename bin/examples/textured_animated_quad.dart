@@ -1,6 +1,7 @@
 // https://github.com/TheSpydog/SDL_gpu_examples/blob/main/Examples/TexturedAnimatedQuad.c
 import 'dart:ffi';
 import 'dart:math' as math;
+
 import 'package:ffi/ffi.dart';
 import 'package:sdl3/sdl3.dart';
 import 'package:sdl3_gpu_examples/sdl3_gpu_examples.dart';
@@ -120,48 +121,58 @@ class TexturedAnimatedQuad extends Common {
       return false;
     }
     // Create the pipeline
-    final pipelineCreateInfo = SdlxGpuGraphicsPipelineCreateInfo()
-      ..targetInfo.colorTargetDescriptions = [
-        // color target
-        SdlxGpuColorTargetDescription()
-          ..format = sdlGetGpuSwapchainTextureFormat(
-            context.device,
-            context.window,
-          )
-          ..blendState.enableBlend = 1
-          ..blendState.alphaBlendOp = SdlkGpuBlendop.add
-          ..blendState.colorBlendOp = SdlkGpuBlendop.add
-          ..blendState.srcColorBlendfactor = SdlkGpuBlendfactor.srcAlpha
-          ..blendState.srcAlphaBlendfactor = SdlkGpuBlendfactor.srcAlpha
-          ..blendState.dstColorBlendfactor = SdlkGpuBlendfactor.oneMinusSrcAlpha
-          ..blendState.dstAlphaBlendfactor =
-              SdlkGpuBlendfactor.oneMinusSrcAlpha,
-      ]
-      ..vertexInputState.vertexBufferDescriptions = [
-        // vertex buffer
-        SdlxGpuVertexBufferDescription()
-          ..slot = 0
-          ..inputRate = SdlkGpuVertexinputrate.vertex
-          ..instanceStepRate = 0
-          ..pitch = sizeOf<PositionTextureVertex>(),
-      ]
-      ..vertexInputState.vertexAttributes = [
-        // vertex attribute[0]
-        SdlxGpuVertexAttribute()
-          ..bufferSlot = 0
-          ..format = SdlkGpuVertexelementformat.float3
-          ..location = 0
-          ..offset = 0,
-        // vertex attribute[1]
-        SdlxGpuVertexAttribute()
-          ..bufferSlot = 0
-          ..format = SdlkGpuVertexelementformat.float2
-          ..location = 1
-          ..offset = sizeOf<Float>() * 3,
-      ]
-      ..primitiveType = SdlkGpuPrimitivetype.trianglelist
-      ..vertexShader = vertexShader
-      ..fragmentShader = fragmentShader;
+    final pipelineCreateInfo = SdlxGpuGraphicsPipelineCreateInfo(
+      targetInfo: SdlxGpuGraphicsPipelineTargetInfo(
+        colorTargetDescriptions: [
+          // color target
+          SdlxGpuColorTargetDescription(
+            format: sdlGetGpuSwapchainTextureFormat(
+              context.device,
+              context.window,
+            ),
+            blendState: const SdlxGpuColorTargetBlendState(
+              enableBlend: true,
+              alphaBlendOp: SdlkGpuBlendop.add,
+              colorBlendOp: SdlkGpuBlendop.add,
+              srcColorBlendfactor: SdlkGpuBlendfactor.srcAlpha,
+              srcAlphaBlendfactor: SdlkGpuBlendfactor.srcAlpha,
+              dstColorBlendfactor: SdlkGpuBlendfactor.oneMinusSrcAlpha,
+              dstAlphaBlendfactor: SdlkGpuBlendfactor.oneMinusSrcAlpha,
+            ),
+          ),
+        ],
+      ),
+      vertexInputState: SdlxGpuVertexInputState(
+        vertexBufferDescriptions: [
+          // vertex buffer
+          SdlxGpuVertexBufferDescription(
+            //slot: 0,
+            //inputRate: SdlkGpuVertexinputrate.vertex,
+            //instanceStepRate: 0,
+            pitch: sizeOf<PositionTextureVertex>(),
+          ),
+        ],
+        vertexAttributes: [
+          // vertex attribute[0]
+          const SdlxGpuVertexAttribute(
+            //bufferSlot: 0,
+            format: SdlkGpuVertexelementformat.float3,
+            //location: 0,
+            //offset: 0,
+          ),
+          // vertex attribute[1]
+          SdlxGpuVertexAttribute(
+            //bufferSlot: 0,
+            format: SdlkGpuVertexelementformat.float2,
+            location: 1,
+            offset: sizeOf<Float>() * 3,
+          ),
+        ],
+      ),
+      //primitiveType: SdlkGpuPrimitivetype.trianglelist,
+      vertexShader: vertexShader,
+      fragmentShader: fragmentShader,
+    );
     pipeline = sdlxCreateGpuGraphicsPipeline(
       context.device,
       pipelineCreateInfo,
@@ -175,43 +186,48 @@ class TexturedAnimatedQuad extends Common {
     // Create the GPU resources
     vertexBuffer = sdlxCreateGpuBuffer(
       context.device,
-      SdlxGpuBufferCreateInfo()
-        ..usage = SdlkGpuBufferusage.vertex
-        ..size = sizeOf<PositionTextureVertex>() * 4,
+      SdlxGpuBufferCreateInfo(
+        usage: SdlkGpuBufferusage.vertex,
+        size: sizeOf<PositionTextureVertex>() * 4,
+      ),
     );
     indexBuffer = sdlxCreateGpuBuffer(
       context.device,
-      SdlxGpuBufferCreateInfo()
-        ..usage = SdlkGpuBufferusage.index
-        ..size = sizeOf<Uint16>() * 6,
+      SdlxGpuBufferCreateInfo(
+        usage: SdlkGpuBufferusage.index,
+        size: sizeOf<Uint16>() * 6,
+      ),
     );
     texture = sdlxCreateGpuTexture(
       context.device,
-      SdlxGpuTextureCreateInfo()
-        ..type = SdlkGpuTexturetype.on2D
-        ..format = SdlkGpuTextureformat.r8G8B8A8Unorm
-        ..width = imageData.ref.w
-        ..height = imageData.ref.h
-        ..layerCountOrDepth = 1
-        ..numLevels = 1
-        ..usage = SdlkGpuTextureusage.sampler,
+      SdlxGpuTextureCreateInfo(
+        //type: SdlkGpuTexturetype.on2D,
+        format: SdlkGpuTextureformat.r8G8B8A8Unorm,
+        width: imageData.ref.w,
+        height: imageData.ref.h,
+        layerCountOrDepth: 1,
+        numLevels: 1,
+        usage: SdlkGpuTextureusage.sampler,
+      ),
     );
     sampler = sdlxCreateGpuSampler(
       context.device,
-      SdlxGpuSamplerCreateInfo()
-        ..minFilter = SdlkGpuFilter.nearest
-        ..magFilter = SdlkGpuFilter.nearest
-        ..mipmapMode = SdlkGpuSamplermipmapmode.nearest
-        ..addressModeU = SdlkGpuSampleraddressmode.clampToEdge
-        ..addressModeV = SdlkGpuSampleraddressmode.clampToEdge
-        ..addressModeW = SdlkGpuSampleraddressmode.clampToEdge,
+      const SdlxGpuSamplerCreateInfo(
+        //minFilter: SdlkGpuFilter.nearest,
+        //magFilter: SdlkGpuFilter.nearest,
+        //mipmapMode: SdlkGpuSamplermipmapmode.nearest,
+        addressModeU: SdlkGpuSampleraddressmode.clampToEdge,
+        addressModeV: SdlkGpuSampleraddressmode.clampToEdge,
+        addressModeW: SdlkGpuSampleraddressmode.clampToEdge,
+      ),
     );
     // Set up buffer data
     final bufferTransferBuffer = sdlxCreateGpuTransferBuffer(
       context.device,
-      SdlxGpuTransferBufferCreateInfo()
-        ..usage = SdlkGpuTransferbufferusage.upload
-        ..size = sizeOf<PositionTextureVertex>() * 4 + sizeOf<Uint16>() * 6,
+      SdlxGpuTransferBufferCreateInfo(
+        //usage: SdlkGpuTransferbufferusage.upload,
+        size: sizeOf<PositionTextureVertex>() * 4 + sizeOf<Uint16>() * 6,
+      ),
     );
     final transferData = sdlMapGpuTransferBuffer(
       context.device,
@@ -233,9 +249,10 @@ class TexturedAnimatedQuad extends Common {
     // Set up texture data
     final textureTransferBuffer = sdlxCreateGpuTransferBuffer(
       context.device,
-      SdlxGpuTransferBufferCreateInfo()
-        ..usage = SdlkGpuTransferbufferusage.upload
-        ..size = imageData.ref.w * imageData.ref.h * 4,
+      SdlxGpuTransferBufferCreateInfo(
+        //usage: SdlkGpuTransferbufferusage.upload,
+        size: imageData.ref.w * imageData.ref.h * 4,
+      ),
     );
     final textureTranferPointer = sdlMapGpuTransferBuffer(
       context.device,
@@ -243,7 +260,7 @@ class TexturedAnimatedQuad extends Common {
       false,
     ).cast<Uint8>();
     sdlMemcpy(
-      textureTranferPointer,
+      textureTranferPointer.cast<Void>(),
       imageData.ref.pixels,
       imageData.ref.w * imageData.ref.h * 4,
     );
@@ -253,37 +270,40 @@ class TexturedAnimatedQuad extends Common {
     final copyPass = sdlBeginGpuCopyPass(uploadCommandBuffer);
     sdlxUploadToGpuBuffer(
       copyPass,
-      SdlxGpuTransferBufferLocation()
-        ..transferBuffer = bufferTransferBuffer
-        ..offset = 0,
-      SdlxGpuBufferRegion()
-        ..buffer = vertexBuffer
-        ..offset = 0
-        ..size = sizeOf<PositionTextureVertex>() * 4,
-      false,
+      SdlxGpuTransferBufferLocation(
+        transferBuffer: bufferTransferBuffer,
+        //offset: 0,
+      ),
+      SdlxGpuBufferRegion(
+        buffer: vertexBuffer,
+        //offset: 0,
+        size: sizeOf<PositionTextureVertex>() * 4,
+      ),
     );
     sdlxUploadToGpuBuffer(
       copyPass,
-      SdlxGpuTransferBufferLocation()
-        ..transferBuffer = bufferTransferBuffer
-        ..offset = sizeOf<PositionTextureVertex>() * 4,
-      SdlxGpuBufferRegion()
-        ..buffer = indexBuffer
-        ..offset = 0
-        ..size = sizeOf<Uint16>() * 6,
-      false,
+      SdlxGpuTransferBufferLocation(
+        transferBuffer: bufferTransferBuffer,
+        offset: sizeOf<PositionTextureVertex>() * 4,
+      ),
+      SdlxGpuBufferRegion(
+        buffer: indexBuffer,
+        //offset: 0,
+        size: sizeOf<Uint16>() * 6,
+      ),
     );
     sdlxUploadToGpuTexture(
       copyPass,
-      SdlxGpuTextureTransferInfo()
-        ..transferBuffer = textureTransferBuffer
-        ..offset = 0,
-      SdlxGpuTextureRegion()
-        ..texture = texture
-        ..w = imageData.ref.w
-        ..h = imageData.ref.h
-        ..d = 1,
-      false,
+      SdlxGpuTextureTransferInfo(
+        transferBuffer: textureTransferBuffer,
+        //offset: 0,
+      ),
+      SdlxGpuTextureRegion(
+        texture: texture,
+        w: imageData.ref.w,
+        h: imageData.ref.h,
+        d: 1,
+      ),
     );
     imageData.destroy();
     sdlEndGpuCopyPass(copyPass);
@@ -313,17 +333,17 @@ class TexturedAnimatedQuad extends Common {
       sdlPushGpuVertexUniformData(
         context.commandBuffer,
         0,
-        matrixPointer,
+        matrixPointer.cast<Void>(),
         sizeOf<Float>() * 16,
       );
       matrixPointer.callocFree();
     }
     {
-      final colorPointer = color.calloc();
+      final colorPointer = color.toNative();
       sdlPushGpuFragmentUniformData(
         context.commandBuffer,
         0,
-        colorPointer,
+        colorPointer.cast<Void>(),
         sizeOf<SdlFColor>(),
       );
       colorPointer.callocFree();
@@ -334,42 +354,36 @@ class TexturedAnimatedQuad extends Common {
   @override
   bool draw(Context context) {
     sdlBindGpuGraphicsPipeline(context.renderPass, pipeline);
-    sdlxBindGpuVertexBuffers(
-      context.renderPass,
-      bindings: [
-        SdlxGpuBufferBinding()
-          ..buffer = vertexBuffer
-          ..offset = 0,
-      ],
-    );
+    sdlxBindGpuVertexBuffers(context.renderPass, [
+      SdlxGpuBufferBinding(
+        buffer: vertexBuffer,
+        //offset: 0,
+      ),
+    ]);
     sdlxBindGpuIndexBuffer(
       context.renderPass,
-      SdlxGpuBufferBinding()
-        ..buffer = indexBuffer
-        ..offset = 0,
+      SdlxGpuBufferBinding(
+        buffer: indexBuffer,
+        //offset: 0,
+      ),
       SdlkGpuIndexelementsize.on16Bit,
     );
-    sdlxBindGpuFragmentSamplers(
-      context.renderPass,
-      bindings: [
-        SdlxGpuTextureSamplerBinding()
-          ..texture = texture
-          ..sampler = sampler,
-      ],
-    );
+    sdlxBindGpuFragmentSamplers(context.renderPass, [
+      SdlxGpuTextureSamplerBinding(texture: texture, sampler: sampler),
+    ]);
     // Top-left
     _drawInstance(
       context,
       translation: Vector3(-0.5, -0.5, 0),
       rotationZ: t,
-      color: SdlxFColor(r: 1, g: 0.5 + math.sin(t) * 0.5, b: 1),
+      color: SdlxFColor(1, 0.5 + math.sin(t) * 0.5, 1),
     );
     // Top-right
     _drawInstance(
       context,
       translation: Vector3(0.5, -0.5, 0),
       rotationZ: (2.0 * math.pi) - t,
-      color: SdlxFColor(r: 1, g: 0.5 + math.cos(t) * 0.5, b: 1),
+      color: SdlxFColor(1, 0.5 + math.cos(t) * 0.5, 1),
     );
 
     // Bottom-left
@@ -377,7 +391,7 @@ class TexturedAnimatedQuad extends Common {
       context,
       translation: Vector3(-0.5, 0.5, 0),
       rotationZ: t,
-      color: SdlxFColor(r: 1, g: 0.5 + math.sin(t) * 0.2, b: 1),
+      color: SdlxFColor(1, 0.5 + math.sin(t) * 0.2, 1),
     );
 
     // Bottom-right
@@ -385,7 +399,7 @@ class TexturedAnimatedQuad extends Common {
       context,
       translation: Vector3(0.5, 0.5, 0),
       rotationZ: t,
-      color: SdlxFColor(r: 1, g: 0.5 + math.cos(t) * 1.0, b: 1),
+      color: SdlxFColor(1, 0.5 + math.cos(t) * 1.0, 1),
     );
     return true;
   }

@@ -1,5 +1,6 @@
 // https://github.com/TheSpydog/SDL_gpu_examples/blob/main/Examples/BasicStencil.c
 import 'dart:ffi';
+
 import 'package:sdl3/sdl3.dart';
 import 'package:sdl3_gpu_examples/sdl3_gpu_examples.dart';
 
@@ -112,74 +113,110 @@ class BasicStencil extends Common {
       return false;
     }
 
-    final pipelineCreateInfo = SdlxGpuGraphicsPipelineCreateInfo()
-      ..targetInfo.colorTargetDescriptions = [
-        SdlxGpuColorTargetDescription()
-          ..format = sdlGetGpuSwapchainTextureFormat(
+    final targetInfo = SdlxGpuGraphicsPipelineTargetInfo(
+      colorTargetDescriptions: [
+        SdlxGpuColorTargetDescription(
+          format: sdlGetGpuSwapchainTextureFormat(
             context.device,
             context.window,
           ),
-      ]
-      ..targetInfo.hasDepthStencilTarget = 1
-      ..targetInfo.depthStencilFormat = depthStencilFormat
-      ..depthStencilState.enableStencilTest = 1
-      ..depthStencilState.frontStencilState.compareOp = SdlkGpuCompareop.never
-      ..depthStencilState.frontStencilState.failOp = SdlkGpuStencilop.replace
-      ..depthStencilState.frontStencilState.passOp = SdlkGpuStencilop.keep
-      ..depthStencilState.frontStencilState.depthFailOp = SdlkGpuStencilop.keep
-      ..depthStencilState.backStencilState.compareOp = SdlkGpuCompareop.never
-      ..depthStencilState.backStencilState.failOp = SdlkGpuStencilop.replace
-      ..depthStencilState.backStencilState.passOp = SdlkGpuStencilop.keep
-      ..depthStencilState.backStencilState.depthFailOp = SdlkGpuStencilop.keep
-      ..depthStencilState.writeMask = 0xf0f
-      ..rasterizerState.cullMode = SdlkGpuCullmode.none
-      ..rasterizerState.fillMode = SdlkGpuFillmode.fill
-      ..rasterizerState.frontFace = SdlkGpuFrontface.counterClockwise
-      ..vertexInputState.vertexBufferDescriptions = [
-        SdlxGpuVertexBufferDescription()
-          ..slot = 0
-          ..inputRate = SdlkGpuVertexinputrate.vertex
-          ..instanceStepRate = 0
-          ..pitch = sizeOf<PositionColorVertex>(),
-      ]
-      ..vertexInputState.vertexAttributes = [
-        SdlxGpuVertexAttribute()
-          ..bufferSlot = 0
-          ..format = SdlkGpuVertexelementformat.float3
-          ..location = 0
-          ..offset = 0,
-        SdlxGpuVertexAttribute()
-          ..bufferSlot = 0
-          ..format = SdlkGpuVertexelementformat.ubyte4Norm
-          ..location = 1
-          ..offset = sizeOf<Float>() * 3,
-      ]
-      ..primitiveType = SdlkGpuPrimitivetype.trianglelist
-      ..vertexShader = vertexShader
-      ..fragmentShader = fragmentShader;
+        ),
+      ],
+      hasDepthStencilTarget: true,
+      depthStencilFormat: depthStencilFormat,
+    );
+    final vertexInputState = SdlxGpuVertexInputState(
+      vertexBufferDescriptions: [
+        SdlxGpuVertexBufferDescription(
+          //slot: 0,
+          //inputRate: SdlkGpuVertexinputrate.vertex,
+          //instanceStepRate: 0,
+          pitch: sizeOf<PositionColorVertex>(),
+        ),
+      ],
+      vertexAttributes: [
+        const SdlxGpuVertexAttribute(
+          //bufferSlot: 0,
+          format: SdlkGpuVertexelementformat.float3,
+          //location: 0,
+          //offset: 0,
+        ),
+        SdlxGpuVertexAttribute(
+          //bufferSlot: 0,
+          format: SdlkGpuVertexelementformat.ubyte4Norm,
+          location: 1,
+          offset: sizeOf<Float>() * 3,
+        ),
+      ],
+    );
+
     maskerPipeline = sdlxCreateGpuGraphicsPipeline(
       context.device,
-      pipelineCreateInfo,
+      SdlxGpuGraphicsPipelineCreateInfo(
+        targetInfo: targetInfo,
+        depthStencilState: const SdlxGpuDepthStencilState(
+          enableStencilTest: true,
+          frontStencilState: SdlxGpuStencilOpState(
+            compareOp: SdlkGpuCompareop.never,
+            failOp: SdlkGpuStencilop.replace,
+            passOp: SdlkGpuStencilop.keep,
+            depthFailOp: SdlkGpuStencilop.keep,
+          ),
+          backStencilState: SdlxGpuStencilOpState(
+            compareOp: SdlkGpuCompareop.never,
+            failOp: SdlkGpuStencilop.replace,
+            passOp: SdlkGpuStencilop.keep,
+            depthFailOp: SdlkGpuStencilop.keep,
+          ),
+          writeMask: 0xf0f,
+        ),
+        //rasterizerState: const SdlxGpuRasterizerState(
+        //  cullMode: SdlkGpuCullmode.none,
+        //  fillMode: SdlkGpuFillmode.fill,
+        //  frontFace: SdlkGpuFrontface.counterClockwise,
+        //),
+        vertexInputState: vertexInputState,
+        //primitiveType: SdlkGpuPrimitivetype.trianglelist,
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+      ),
     );
     if (maskerPipeline == nullptr) {
       sdlLog('Failed to create masker pipeline!');
       return false;
     }
-    pipelineCreateInfo
-      ..depthStencilState.enableStencilTest = 1
-      ..depthStencilState.frontStencilState.compareOp = SdlkGpuCompareop.equal
-      ..depthStencilState.frontStencilState.failOp = SdlkGpuStencilop.keep
-      ..depthStencilState.frontStencilState.passOp = SdlkGpuStencilop.keep
-      ..depthStencilState.frontStencilState.depthFailOp = SdlkGpuStencilop.keep
-      ..depthStencilState.backStencilState.compareOp = SdlkGpuCompareop.never
-      ..depthStencilState.backStencilState.failOp = SdlkGpuStencilop.keep
-      ..depthStencilState.backStencilState.passOp = SdlkGpuStencilop.keep
-      ..depthStencilState.backStencilState.depthFailOp = SdlkGpuStencilop.keep
-      ..depthStencilState.compareMask = 0xff
-      ..depthStencilState.writeMask = 0;
     maskeePipeline = sdlxCreateGpuGraphicsPipeline(
       context.device,
-      pipelineCreateInfo,
+
+      SdlxGpuGraphicsPipelineCreateInfo(
+        targetInfo: targetInfo,
+        depthStencilState: const SdlxGpuDepthStencilState(
+          enableStencilTest: true,
+          frontStencilState: SdlxGpuStencilOpState(
+            compareOp: SdlkGpuCompareop.equal,
+            failOp: SdlkGpuStencilop.keep,
+            passOp: SdlkGpuStencilop.keep,
+            depthFailOp: SdlkGpuStencilop.keep,
+          ),
+          backStencilState: SdlxGpuStencilOpState(
+            compareOp: SdlkGpuCompareop.never,
+            failOp: SdlkGpuStencilop.keep,
+            passOp: SdlkGpuStencilop.keep,
+            depthFailOp: SdlkGpuStencilop.keep,
+          ),
+          compareMask: 0xff,
+          //writeMask: 0,
+        ),
+        //rasterizerState: const SdlxGpuRasterizerState(
+        //  cullMode: SdlkGpuCullmode.none,
+        //  fillMode: SdlkGpuFillmode.fill,
+        //  frontFace: SdlkGpuFrontface.counterClockwise,
+        //),
+        vertexInputState: vertexInputState,
+        //primitiveType: SdlkGpuPrimitivetype.trianglelist,
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+      ),
     );
     if (maskeePipeline == nullptr) {
       sdlLog('Failed to create maskee pipeline!');
@@ -189,31 +226,35 @@ class BasicStencil extends Common {
     sdlReleaseGpuShader(context.device, fragmentShader);
     // Create the vertex buffer
     {
-      final bufferCreateInfo = SdlxGpuBufferCreateInfo()
-        ..usage = SdlkGpuBufferusage.vertex
-        ..size = sizeOf<PositionColorVertex>() * 6;
+      final bufferCreateInfo = SdlxGpuBufferCreateInfo(
+        usage: SdlkGpuBufferusage.vertex,
+        size: sizeOf<PositionColorVertex>() * 6,
+      );
       vertexBuffer = sdlxCreateGpuBuffer(context.device, bufferCreateInfo);
     }
-    final size = SdlxPoint();
-    sdlxGetWindowSizeInPixels(context.window, size);
-    depthStencilTexture = sdlxCreateGpuTexture(
-      context.device,
-      SdlxGpuTextureCreateInfo()
-        ..type = SdlkGpuTexturetype.on2D
-        ..width = size.x
-        ..height = size.y
-        ..layerCountOrDepth = 1
-        ..numLevels = 1
-        ..sampleCount = SdlkGpuSamplecount.on1
-        ..format = depthStencilFormat
-        ..usage = SdlkGpuTextureusage.depthStencilTarget,
-    );
+    final rec = sdlxGetWindowSizeInPixels(context.window);
+    if (rec != null) {
+      depthStencilTexture = sdlxCreateGpuTexture(
+        context.device,
+        SdlxGpuTextureCreateInfo(
+          //type: SdlkGpuTexturetype.on2D,
+          width: rec.w,
+          height: rec.h,
+          layerCountOrDepth: 1,
+          numLevels: 1,
+          //sampleCount: SdlkGpuSamplecount.on1,
+          format: depthStencilFormat,
+          usage: SdlkGpuTextureusage.depthStencilTarget,
+        ),
+      );
+    }
     // To get data into the vertex buffer, we have to use a transfer buffer
     final transferBuffer = sdlxCreateGpuTransferBuffer(
       context.device,
-      SdlxGpuTransferBufferCreateInfo()
-        ..usage = SdlkGpuTransferbufferusage.upload
-        ..size = sizeOf<PositionColorVertex>() * 6,
+      SdlxGpuTransferBufferCreateInfo(
+        //usage: SdlkGpuTransferbufferusage.upload,
+        size: sizeOf<PositionColorVertex>() * 6,
+      ),
     );
     final transferData = sdlMapGpuTransferBuffer(
       context.device,
@@ -230,45 +271,41 @@ class BasicStencil extends Common {
     // Upload the transfer data to the vertex buffer
     final uploadCommandBuffer = sdlAcquireGpuCommandBuffer(context.device);
     final copyPass = sdlBeginGpuCopyPass(uploadCommandBuffer);
-    final transferBufferLocation = SdlxGpuTransferBufferLocation()
-      ..transferBuffer = transferBuffer
-      ..offset = 0;
-    final bufferRegion = SdlxGpuBufferRegion()
-      ..buffer = vertexBuffer
-      ..offset = 0
-      ..size = sizeOf<PositionColorVertex>() * 6;
-    sdlxUploadToGpuBuffer(
-      copyPass,
-      transferBufferLocation,
-      bufferRegion,
-      false,
+    final transferBufferLocation = SdlxGpuTransferBufferLocation(
+      transferBuffer: transferBuffer,
+      //offset: 0,
     );
+    final bufferRegion = SdlxGpuBufferRegion(
+      buffer: vertexBuffer,
+      //offset: 0,
+      size: sizeOf<PositionColorVertex>() * 6,
+    );
+    sdlxUploadToGpuBuffer(copyPass, transferBufferLocation, bufferRegion);
     sdlEndGpuCopyPass(copyPass);
     sdlSubmitGpuCommandBuffer(uploadCommandBuffer);
     sdlReleaseGpuTransferBuffer(context.device, transferBuffer);
 
-    depthStencilTargetInfo = SdlxGpuDepthStencilTargetInfo()
-      ..texture = depthStencilTexture
-      ..cycle = 1
-      ..clearDepth = 0
-      ..clearStencil = 0
-      ..loadOp = SdlkGpuLoadop.clear
-      ..storeOp = SdlkGpuStoreop.dontCare
-      ..stencilLoadOp = SdlkGpuLoadop.clear
-      ..stencilStoreOp = SdlkGpuStoreop.dontCare;
+    depthStencilTargetInfo = SdlxGpuDepthStencilTargetInfo(
+      texture: depthStencilTexture,
+      cycle: true,
+      //clearDepth: 0,
+      //clearStencil: 0,
+      loadOp: SdlkGpuLoadop.clear,
+      storeOp: SdlkGpuStoreop.dontCare,
+      stencilLoadOp: SdlkGpuLoadop.clear,
+      stencilStoreOp: SdlkGpuStoreop.dontCare,
+    );
     return true;
   }
 
   @override
   bool draw(Context context) {
-    sdlxBindGpuVertexBuffers(
-      context.renderPass,
-      bindings: [
-        SdlxGpuBufferBinding()
-          ..buffer = vertexBuffer
-          ..offset = 0,
-      ],
-    );
+    sdlxBindGpuVertexBuffers(context.renderPass, [
+      SdlxGpuBufferBinding(
+        buffer: vertexBuffer,
+        //offset: 0
+      ),
+    ]);
     sdlSetGpuStencilReference(context.renderPass, 1);
     sdlBindGpuGraphicsPipeline(context.renderPass, maskerPipeline);
     sdlDrawGpuPrimitives(context.renderPass, 3, 1, 0, 0);
